@@ -1,0 +1,1171 @@
+```html
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetroNexus Arcade | Premium Gaming Portal</title>
+    
+    <!-- Tailwind CSS für schnelles, responsives Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome für schicke Gaming-Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts für den futuristischen Gaming-Look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Three.js für den integrierten 3D-Flugsimulator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0b0c10',
+                            darker: '#1f2833',
+                            gray: '#c5c6c7',
+                            cyan: '#66fcf1',
+                            teal: '#45f3ff',
+                            purple: '#8a2be2',
+                            pink: '#ff007f'
+                        }
+                    },
+                    fontFamily {
+                        sans: ['Rajdhani', 'sans-serif'],
+                        orbitron: ['Orbitron', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom Scrollbar für den echten Gaming-Look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0c10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #45f3ff;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8a2be2;
+        }
+        
+        body {
+            background-color: #0b0c10;
+            overflow-x: hidden;
+        }
+        
+        .glow-hover:hover {
+            box-shadow: 0 0 15px rgba(69, 243, 255, 0.6);
+            border-color: #45f3ff;
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(69, 243, 255, 0.8), 0 0 20px rgba(138, 43, 226, 0.5);
+        }
+
+        .neon-border {
+            border: 1px solid rgba(69, 243, 255, 0.2);
+        }
+        
+        /* Flugsimulator Canvas Styling */
+        #simulator-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    </style>
+</head>
+<body class="text-white font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-brand-darker border-b border-brand-cyan/20 px-4 py-3 sticky top-0 z-40 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <button id="mobile-menu-btn" class="text-brand-cyan text-2xl md:hidden focus:outline-none">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-gamepad text-brand-cyan text-3xl animate-pulse"></i>
+                <span class="font-orbitron text-xl md:text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan to-brand-purple">
+                    NEXUS<span class="text-white">ARCADE</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Suchleiste im Header -->
+        <div class="relative w-1/3 max-w-md hidden md:block">
+            <input type="text" id="search-input" placeholder="Suche nach Deinem Lieblingsspiel..." 
+                   class="w-full bg-brand-dark border border-brand-cyan/30 rounded-full py-1.5 px-4 pl-10 text-white focus:outline-none focus:border-brand-cyan transition duration-300 text-sm">
+            <i class="fas fa-search absolute left-3.5 top-2.5 text-brand-cyan/60"></i>
+        </div>
+
+        <!-- User Profile & Stats (Mock) -->
+        <div class="flex items-center space-x-4">
+            <div class="hidden sm:flex flex-col text-right">
+                <span class="text-xs text-brand-cyan font-bold uppercase tracking-wider">Level 42</span>
+                <span class="text-sm font-semibold">GamerPro99</span>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-cyan to-brand-purple p-0.5">
+                <div class="w-full h-full bg-brand-darker rounded-full flex items-center justify-center">
+                    <i class="fas fa-user-astronaut text-brand-cyan"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MOBILE SEARCH BAR (nur mobil sichtbar) -->
+    <div class="p-3 bg-brand-darker border-b border-brand-cyan/10 md:hidden">
+        <div class="relative w-full">
+            <input type="text" id="mobile-search-input" placeholder="Spiel suchen..." 
+                   class="w-full bg-brand-dark border border-brand-cyan/30 rounded-full py-2 px-4 pl-10 text-white focus:outline-none focus:border-brand-cyan text-sm">
+            <i class="fas fa-search absolute left-3.5 top-3 text-brand-cyan/60"></i>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="flex-1 flex flex-col md:flex-row relative">
+
+        <!-- SIDEBAR (CATEGORIES) -->
+        <aside id="sidebar" class="bg-brand-darker/95 w-64 border-r border-brand-cyan/10 p-5 flex-col md:flex space-y-6 absolute md:relative z-30 h-full md:h-auto transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <div>
+                <h3 class="font-orbitron text-xs font-bold text-brand-cyan/60 tracking-wider uppercase mb-3">Kategorien</h3>
+                <nav class="space-y-1" id="category-list">
+                    <button data-category="all" class="w-full text-left py-2.5 px-4 rounded-lg bg-gradient-to-r from-brand-cyan/20 to-transparent border-l-4 border-brand-cyan text-brand-cyan font-bold transition flex items-center space-x-3">
+                        <i class="fas fa-th-large w-5"></i>
+                        <span>Alle Spiele</span>
+                    </button>
+                    <button data-category="3d" class="w-full text-left py-2.5 px-4 rounded-lg text-brand-gray hover:bg-brand-dark hover:text-white transition flex items-center space-x-3">
+                        <i class="fas fa-cube w-5"></i>
+                        <span>3D Simulations</span>
+                    </button>
+                    <button data-category="action" class="w-full text-left py-2.5 px-4 rounded-lg text-brand-gray hover:bg-brand-dark hover:text-white transition flex items-center space-x-3">
+                        <i class="fas fa-bolt w-5"></i>
+                        <span>Action & Arcade</span>
+                    </button>
+                    <button data-category="puzzle" class="w-full text-left py-2.5 px-4 rounded-lg text-brand-gray hover:bg-brand-dark hover:text-white transition flex items-center space-x-3">
+                        <i class="fas fa-brain w-5"></i>
+                        <span>Denksport</span>
+                    </button>
+                    <button data-category="sports" class="w-full text-left py-2.5 px-4 rounded-lg text-brand-gray hover:bg-brand-dark hover:text-white transition flex items-center space-x-3">
+                        <i class="fas fa-trophy w-5"></i>
+                        <span>Sport & Racing</span>
+                    </button>
+                </nav>
+            </div>
+
+            <div>
+                <h3 class="font-orbitron text-xs font-bold text-brand-cyan/60 tracking-wider uppercase mb-3">Deine Favoriten</h3>
+                <div class="text-xs text-brand-gray/60 italic p-3 border border-dashed border-brand-cyan/10 rounded-lg text-center">
+                    Klicke auf das <i class="far fa-heart"></i> an einem Spiel, um es hier zu speichern!
+                </div>
+            </div>
+
+            <div class="mt-auto pt-6 border-t border-brand-cyan/10">
+                <div class="bg-gradient-to-br from-brand-purple/20 to-brand-pink/20 p-4 rounded-xl border border-brand-purple/30">
+                    <h4 class="font-orbitron font-bold text-sm text-brand-pink mb-1"><i class="fas fa-fire mr-1"></i> FLUGSIMULATOR 3D</h4>
+                    <p class="text-xs text-brand-gray mb-3">Erlebe echtes Cockpit-Feeling direkt im Browser mit präziser Three.js Physik.</p>
+                    <button onclick="launchFeaturedFlightSim()" class="w-full bg-gradient-to-r from-brand-purple to-brand-pink hover:from-brand-pink hover:to-brand-purple text-white text-xs font-bold py-2 px-3 rounded-lg transition duration-300 transform hover:scale-105 shadow-lg">
+                        Jetzt abheben!
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN DASHBOARD CONTENT -->
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+
+            <!-- HERO FEATURED SECTION -->
+            <section class="mb-8 relative rounded-2xl overflow-hidden neon-border bg-gradient-to-r from-black via-brand-darker/80 to-transparent min-h-[280px] md:min-h-[340px] flex flex-col justify-center p-6 md:p-10">
+                <!-- Hintergrund-Deko -->
+                <div class="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-brand-cyan/15 via-brand-purple/5 to-transparent"></div>
+                
+                <div class="relative z-10 max-w-lg">
+                    <span class="bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/30 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest font-orbitron">Featured Game</span>
+                    <h1 class="font-orbitron text-3xl md:text-5xl font-black tracking-tight mt-3 text-white neon-text">
+                        3D JET STORM
+                    </h1>
+                    <p class="text-brand-gray text-sm md:text-base mt-2 mb-6">
+                        Fliege eine hochmoderne F-18 in unserer vollendeten HTML5-3D-Simulation. Weiche Hindernissen aus, sammle Ringe und zeige dein fliegerisches Können über dem Ozean!
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="launchFeaturedFlightSim()" class="bg-brand-cyan hover:bg-white text-brand-dark hover:text-brand-dark px-6 py-3 rounded-xl font-bold transition duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-[0_0_15px_rgba(102,252,241,0.4)]">
+                            <i class="fas fa-play"></i>
+                            <span>Jetzt Simulator starten</span>
+                        </button>
+                        <button onclick="scrollToGames()" class="border border-brand-cyan/50 hover:bg-brand-cyan/10 text-brand-cyan px-6 py-3 rounded-xl font-bold transition duration-300">
+                            Bibliothek durchsuchen
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STATISTICS BAR -->
+            <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-brand-darker border border-brand-cyan/10 p-4 rounded-xl flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-lg bg-brand-cyan/10 flex items-center justify-center text-brand-cyan text-xl">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold font-orbitron" id="game-count">24</div>
+                        <div class="text-xs text-brand-gray">Spiele verfügbar</div>
+                    </div>
+                </div>
+                <div class="bg-brand-darker border border-brand-cyan/10 p-4 rounded-xl flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple text-xl">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold font-orbitron">1.482</div>
+                        <div class="text-xs text-brand-gray">Spieler Online</div>
+                    </div>
+                </div>
+                <div class="bg-brand-darker border border-brand-cyan/10 p-4 rounded-xl flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-lg bg-brand-pink/10 flex items-center justify-center text-brand-pink text-xl">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold font-orbitron">4.9 / 5</div>
+                        <div class="text-xs text-brand-gray">User-Rating</div>
+                    </div>
+                </div>
+                <div class="bg-brand-darker border border-brand-cyan/10 p-4 rounded-xl flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-500 text-xl">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold font-orbitron">3.500 EXP</div>
+                        <div class="text-xs text-brand-gray">Tägliche Belohnung</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GRID TITLE & CONTROLS -->
+            <section id="games-section" class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="font-orbitron text-xl md:text-2xl font-bold text-white flex items-center">
+                        <span class="w-3 h-6 bg-brand-cyan inline-block mr-3 rounded-full"></span>
+                        <span id="current-category-title">Alle Spiele</span>
+                    </h2>
+                </div>
+                <!-- Sortierung -->
+                <div class="flex items-center space-x-2 self-end sm:self-auto">
+                    <label class="text-xs text-brand-gray">Sortieren nach:</label>
+                    <select id="sort-select" class="bg-brand-darker border border-brand-cyan/20 rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:border-brand-cyan text-brand-cyan">
+                        <option value="popular">Beliebtheit</option>
+                        <option value="name">Alphabet (A-Z)</option>
+                        <option value="newest">Neueste zuerst</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- ARCHIVE GAMES GRID (DYNAMISCH) -->
+            <section id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Die Kacheln werden via JavaScript hier hineingeladen -->
+            </section>
+
+            <!-- HINWEIS TEXT FÜR GOTPAGES ADMINISTRATOREN -->
+            <section class="mt-12 bg-brand-darker border border-brand-cyan/15 rounded-xl p-6">
+                <h3 class="font-orbitron text-brand-cyan font-bold mb-2 flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i> Admin-Leitfaden für GotPages
+                </h3>
+                <p class="text-sm text-brand-gray leading-relaxed mb-4">
+                    Diese Website wurde so konzipiert, dass sie sofort als schlüsselfertiges Spiele-Portal läuft. Über das im Code integrierte JSON-Array (<code>gamesData</code>) kannst du mit minimalem Aufwand eigene Spiele hinzufügen, URLs von iFrames anpassen oder bestehende Links anbinden. 
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-brand-gray">
+                    <div class="p-3 bg-brand-dark rounded-lg">
+                        <strong class="text-white block mb-1">Eigene Spiele hinzufügen:</strong>
+                        Suche im Javascript-Bereich nach <code>const gamesData</code>. Kopiere ein Objekt und passe <code>title</code>, <code>category</code> und <code>iframeUrl</code> an.
+                    </div>
+                    <div class="p-3 bg-brand-dark rounded-lg">
+                        <strong class="text-white block mb-1">iFrame Integration:</strong>
+                        Verwende URLs von bekannten Spieleplattformen wie Itch.io, Construct3 oder Poki-Embeds direkt im Modal-System.
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-brand-darker border-t border-brand-cyan/10 py-6 text-center text-xs text-brand-gray">
+        <p>© 2026 NexusArcade. Alle Rechte vorbehalten. Optimiert für GotPages.</p>
+    </footer>
+
+    <!-- GAME EMBED MODAL (Elegantes Overlay für Spiele) -->
+    <div id="game-modal" class="fixed inset-0 bg-black/95 z-50 flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <!-- Modal Container -->
+        <div class="w-full h-full max-w-6xl max-h-[90vh] md:rounded-2xl border border-brand-cyan/40 bg-brand-dark flex flex-col shadow-[0_0_35px_rgba(69,243,255,0.25)] overflow-hidden m-auto relative">
+            
+            <!-- Modal Header -->
+            <div class="bg-brand-darker border-b border-brand-cyan/20 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i id="modal-game-icon" class="fas fa-gamepad text-brand-cyan text-xl"></i>
+                    <h3 id="modal-game-title" class="font-orbitron font-bold text-lg text-white">Spielname</h3>
+                    <span id="modal-game-category" class="text-xs bg-brand-purple/20 border border-brand-purple/40 text-brand-purple px-2 py-0.5 rounded-full uppercase">Kategorie</span>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button id="fullscreen-btn" class="text-brand-gray hover:text-brand-cyan transition text-lg" title="Vollbild">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <button id="close-modal-btn" class="text-brand-gray hover:text-red-500 transition text-2xl" title="Schließen">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Spiel-Inhaltsbereich (iFrame ODER 3D Simulator) -->
+            <div class="flex-1 w-full bg-black relative flex items-center justify-center" id="game-content-container">
+                <!-- Hier wird entweder ein iFrame oder der 3D Simulator eingefügt -->
+                <div id="loader-spinner" class="absolute inset-0 flex flex-col items-center justify-center bg-brand-dark z-10">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-cyan mb-4"></div>
+                    <p class="text-brand-cyan font-orbitron animate-pulse">Lade Spieldaten...</p>
+                </div>
+
+                <!-- Platzhalter für iFrame -->
+                <iframe id="game-iframe" src="" class="w-full h-full border-none hidden" allowfullscreen></iframe>
+
+                <!-- Platzhalter für den integrierten Flight Simulator -->
+                <div id="flight-sim-container" class="w-full h-full relative hidden">
+                    <div id="simulator-canvas-holder" class="w-full h-full"></div>
+                    <!-- Flight Controls Overlay -->
+                    <div class="absolute bottom-4 left-4 bg-black/80 p-4 rounded-xl border border-brand-cyan/30 max-w-sm text-xs pointer-events-none">
+                        <h4 class="font-bold text-brand-cyan mb-2 font-orbitron"><i class="fas fa-keyboard mr-1"></i> FLUGSTEUERUNG</h4>
+                        <div class="grid grid-cols-2 gap-2 text-brand-gray">
+                            <div><kbd class="bg-brand-darker px-1.5 py-0.5 rounded border border-brand-cyan/20">W / S</kbd> Nase ab / auf</div>
+                            <div><kbd class="bg-brand-darker px-1.5 py-0.5 rounded border border-brand-cyan/20">A / D</kbd> Links / Rechts</div>
+                            <div><kbd class="bg-brand-darker px-1.5 py-0.5 rounded border border-brand-cyan/20">Q / E</kbd> Rollen</div>
+                            <div><kbd class="bg-brand-darker px-1.5 py-0.5 rounded border border-brand-cyan/20">Leertaste</kbd> Nitro Boost</div>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-brand-cyan/20 flex justify-between">
+                            <span>Geschwindigkeit: <span id="hud-speed" class="text-brand-cyan font-bold">120 km/h</span></span>
+                            <span>Höhe: <span id="hud-altitude" class="text-brand-cyan font-bold">150 m</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Footer (Bewertungen & Feedback) -->
+            <div class="bg-brand-darker border-t border-brand-cyan/10 px-6 py-3 flex items-center justify-between text-xs text-brand-gray">
+                <div>
+                    Steuerung: Tastatur & Maus
+                </div>
+                <div class="flex items-center space-x-1">
+                    <span>Gefällt dir das Spiel?</span>
+                    <button class="hover:text-brand-cyan text-brand-gray transition px-1"><i class="far fa-thumbs-up"></i></button>
+                    <button class="hover:text-brand-pink text-brand-gray transition px-1"><i class="far fa-thumbs-down"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // --- DATASET FÜR ÜBER 20 SPIELE (24 Spiele inkl. Kategorien & Platzhalter) ---
+        // Du kannst hier einfach die `iframeUrl` durch reale Spiele-URLs (wie itch.io, poki, o.ä.) ersetzen.
+        const gamesData = [
+            {
+                id: "flight-sim",
+                title: "3D Jet Storm Simulator",
+                category: "3d",
+                image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=500&q=80",
+                desc: "Realistischer 3D Flugsimulator auf Three.js Basis.",
+                isFeatured: true,
+                iframeUrl: "internal-flight-sim", // Spezial-ID für unseren eingebauten Simulator
+                rating: 4.9,
+                plays: "45.2K",
+                new: true
+            },
+            {
+                id: "cyber-runner",
+                title: "Cyber Runner 2099",
+                category: "action",
+                image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=500&q=80",
+                desc: "Weiche Neon-Hindernissen in rasantem Tempo aus.",
+                iframeUrl: "https://html5.gamedistribution.com/db9e89d1462a4d33a681ff5a1900d110/", 
+                rating: 4.7,
+                plays: "12.8K"
+            },
+            {
+                id: "galactic-defender",
+                title: "Galactic Defender",
+                category: "action",
+                image: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=500&q=80",
+                desc: "Schütze das Universum vor fremdartigen Aliens.",
+                iframeUrl: "https://html5.gamedistribution.com/b6b553e4c49d4791a8df9daef75a7438/",
+                rating: 4.5,
+                plays: "8.4K"
+            },
+            {
+                id: "neon-pong",
+                title: "Retro Neon Pong",
+                category: "puzzle",
+                image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=500&q=80",
+                desc: "Der Klassiker im modernen Neon-Gewand.",
+                iframeUrl: "https://html5.gamedistribution.com/00cf65d4911d4e13b8606fbf4db1c68d/",
+                rating: 4.2,
+                plays: "19.1K"
+            },
+            {
+                id: "speed-racer",
+                title: "Hyper Drift Racing",
+                category: "sports",
+                image: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=500&q=80",
+                desc: "Drifte um enge Haarnadelkurven.",
+                iframeUrl: "https://html5.gamedistribution.com/d9b4bca416204c3298818f9780879685/",
+                rating: 4.8,
+                plays: "25.0K"
+            },
+            {
+                id: "block-puzzle",
+                title: "Tetra Jewels",
+                category: "puzzle",
+                image: "https://images.unsplash.com/photo-1606167668584-78701c57f13d?auto=format&fit=crop&w=500&q=80",
+                desc: "Klassisches Block-Puzzlespiel mit Suchtfaktor.",
+                iframeUrl: "https://html5.gamedistribution.com/8cb37258079a40a8a61dfb6ba98305c6/",
+                rating: 4.6,
+                plays: "31.2K"
+            },
+            {
+                id: "sudoku-zen",
+                title: "Sudoku Zen Master",
+                category: "puzzle",
+                image: "https://images.unsplash.com/photo-1603481588273-2f908a9a7a1b?auto=format&fit=crop&w=500&q=80",
+                desc: "Entspanne deinen Geist mit asiatischem Sudoku.",
+                iframeUrl: "https://html5.gamedistribution.com/49cf3da5443a41f6966ca0b615daec1e/",
+                rating: 4.4,
+                plays: "6.2K"
+            },
+            {
+                id: "micro-golf",
+                title: "Neon Micro Golf",
+                category: "sports",
+                image: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=500&q=80",
+                desc: "Minigolf mit kreativen Physik-Rätseln.",
+                iframeUrl: "https://html5.gamedistribution.com/8390771cb6a142f689f921da8180f1a6/",
+                rating: 4.3,
+                plays: "14.3K"
+            },
+            {
+                id: "space-orbits",
+                title: "Orbit Gravity",
+                category: "3d",
+                image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=500&q=80",
+                desc: "Steuere eine Sonde durch dichte Gravitationsfelder.",
+                iframeUrl: "https://html5.gamedistribution.com/04f2ee1a68754b2db16b8da5f8dc05b0/",
+                rating: 4.1,
+                plays: "5.1K"
+            },
+            // PLATZHALTER-SPIELE ZUM ERREICHEN DER 20+ SPIELE-MARKE
+            {
+                id: "bubble-shooter-pro",
+                title: "Bubble Shooter Pro",
+                category: "puzzle",
+                image: "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?auto=format&fit=crop&w=500&q=80",
+                desc: "Lasse alle bunten Bläschen platzen.",
+                iframeUrl: "https://html5.gamedistribution.com/e5be8eeec0e448378b273b75490a2cf5/",
+                rating: 4.7,
+                plays: "95K",
+                new: true
+            },
+            {
+                id: "solitaire-classic",
+                title: "Solitaire Classic",
+                category: "puzzle",
+                image: "https://images.unsplash.com/photo-1611195974226-a6a9be9dd763?auto=format&fit=crop&w=500&q=80",
+                desc: "Das beliebteste Kartenspiel der Welt.",
+                iframeUrl: "https://html5.gamedistribution.com/5f80b91e50874e0ab8be6ff81eb16262/",
+                rating: 4.5,
+                plays: "88K"
+            },
+            {
+                id: "chess-arena",
+                title: "Chess Arena 2D",
+                category: "puzzle",
+                image: "https://images.unsplash.com/photo-1529699211952-734e80c4d42b?auto=format&fit=crop&w=500&q=80",
+                desc: "Schlage deine Gegner mit strategischen Zügen.",
+                iframeUrl: "https://html5.gamedistribution.com/26462725fa5e46bfb8e5c8260408ee58/",
+                rating: 4.6,
+                plays: "11K"
+            },
+            {
+                id: "moto-x3m",
+                title: "Extreme Bike Trials",
+                category: "sports",
+                image: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=500&q=80",
+                desc: "Stunts, Feuerreifen und spektakuläre Hindernisse.",
+                iframeUrl: "https://html5.gamedistribution.com/fb6be026362540b689df92120e2ef5b0/",
+                rating: 4.9,
+                plays: "142K"
+            },
+            {
+                id: "archery-world",
+                title: "Archery World Cup",
+                category: "sports",
+                image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=500&q=80",
+                desc: "Ziele und triff das absolute Bullseye.",
+                iframeUrl: "https://html5.gamedistribution.com/e2e8b0a996c5476a8d8e57973cbb763e/",
+                rating: 4.4,
+                plays: "22K"
+            },
+            {
+                id: "highway-rider",
+                title: "Highway Moto Rider",
+                category: "sports",
+                image: "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?auto=format&fit=crop&w=500&q=80",
+                desc: "Weiche dem dichten Straßenverkehr aus.",
+                iframeUrl: "https://html5.gamedistribution.com/152fcff8df47402ea29b8da98108c4e6/",
+                rating: 4.2,
+                plays: "35K"
+            },
+            {
+                id: "snake-retro",
+                title: "Retro Neon Snake",
+                category: "action",
+                image: "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?auto=format&fit=crop&w=500&q=80",
+                desc: "Füttere deine Schlange, ohne dich selbst zu beißen.",
+                iframeUrl: "https://html5.gamedistribution.com/bcf51e1881a7428fbfe7ca63da787262/",
+                rating: 4.1,
+                plays: "17K"
+            },
+            {
+                id: "tower-defense",
+                title: "Command & Defend",
+                category: "action",
+                image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=500&q=80",
+                desc: "Platziere Geschütztürme gegen die Angreiferwellen.",
+                iframeUrl: "https://html5.gamedistribution.com/5df620023f4b46db98be903742416b2a/",
+                rating: 4.8,
+                plays: "49K"
+            },
+            {
+                id: "air-hockey",
+                title: "Air Hockey Neon Challenge",
+                category: "sports",
+                image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=500&q=80",
+                desc: "Klassisches Tisch-Eishockey gegen eine clevere KI.",
+                iframeUrl: "https://html5.gamedistribution.com/6492fb86c755490fa6bdf3b9e4ec3f26/",
+                rating: 4.3,
+                plays: "29K"
+            },
+            {
+                id: "brick-breaker",
+                title: "Brick Breaker Classic",
+                category: "action",
+                image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=500&q=80",
+                desc: "Zerstöre alle Steinblöcke mit deinem Ball.",
+                iframeUrl: "https://html5.gamedistribution.com/cb642ba5ba424be98dbff9ea6406e12e/",
+                rating: 4.5,
+                plays: "53K"
+            },
+            {
+                id: "minesweeper",
+                title: "Minesweeper Retro",
+                category: "puzzle",
+                image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=500&q=80",
+                desc: "Der ikonische PC-Klassiker komplett spielbar.",
+                iframeUrl: "https://html5.gamedistribution.com/c6c3983fb0824b24be9df13a968ebdc2/",
+                rating: 4.0,
+                plays: "8K"
+            },
+            {
+                id: "drift-car-stunt",
+                title: "Extreme Drift Stunts",
+                category: "3d",
+                image: "https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&w=500&q=80",
+                desc: "3D Drift Rennen auf einer schwebenden Megarampe.",
+                iframeUrl: "https://html5.gamedistribution.com/0d9c0250df7b43b6833fe65a18fc4a2a/",
+                rating: 4.8,
+                plays: "67K"
+            },
+            {
+                id: "fruit-cutter",
+                title: "Fruit Slasher Pro",
+                category: "action",
+                image: "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?auto=format&fit=crop&w=500&q=80",
+                desc: "Schneide fliegende Früchte in Höchstgeschwindigkeit.",
+                iframeUrl: "https://html5.gamedistribution.com/5dfb731ca413495ba32446f7ea6ca6e1/",
+                rating: 4.6,
+                plays: "71K"
+            },
+            {
+                id: "space-shooter-3d",
+                title: "Star Wing Commander",
+                category: "3d",
+                image: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=500&q=80",
+                desc: "3D Cockpit Action im fernen Weltraum.",
+                iframeUrl: "https://html5.gamedistribution.com/267d3e09d17d477bb0bda17e0821fba8/",
+                rating: 4.7,
+                plays: "21K"
+            },
+            {
+                id: "ludo-classic",
+                title: "Ludo King Master",
+                category: "puzzle",
+                image: "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=500&q=80",
+                desc: "Der weltberühmte Brettspielspaß für jedermann.",
+                iframeUrl: "https://html5.gamedistribution.com/495fdb0e34774b7e800d3d52cc607218/",
+                rating: 4.6,
+                plays: "119K"
+            }
+        ];
+
+        // --- DOM-ELEMENTE ---
+        const gamesGrid = document.getElementById('games-grid');
+        const searchInput = document.getElementById('search-input');
+        const mobileSearchInput = document.getElementById('mobile-search-input');
+        const categoryList = document.getElementById('category-list');
+        const currentCategoryTitle = document.getElementById('current-category-title');
+        const sortSelect = document.getElementById('sort-select');
+        const gameCountText = document.getElementById('game-count');
+        const sidebar = document.getElementById('sidebar');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        
+        // Modal & Loader
+        const gameModal = document.getElementById('game-modal');
+        const modalGameTitle = document.getElementById('modal-game-title');
+        const modalGameCategory = document.getElementById('modal-game-category');
+        const modalGameIcon = document.getElementById('modal-game-icon');
+        const gameIframe = document.getElementById('game-iframe');
+        const flightSimContainer = document.getElementById('flight-sim-container');
+        const loaderSpinner = document.getElementById('loader-spinner');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+        // State Management
+        let selectedCategory = 'all';
+        let searchQuery = '';
+        let sortBy = 'popular';
+        let favoritedGames = JSON.parse(localStorage.getItem('arcadeFavorites') || '[]');
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            renderGames();
+            setupEventListeners();
+            updateStats();
+        });
+
+        function updateStats() {
+            gameCountText.textContent = gamesData.length;
+        }
+
+        // --- GAME RENDERING PIPELINE ---
+        function renderGames() {
+            // Filter nach Kategorie
+            let filtered = gamesData.filter(game => {
+                const matchesCategory = selectedCategory === 'all' || game.category === selectedCategory;
+                const matchesSearch = game.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                      game.desc.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCategory && matchesSearch;
+            });
+
+            // Sortierung anwenden
+            if (sortBy === 'name') {
+                filtered.sort((a, b) => a.title.localeCompare(b.title));
+            } else if (sortBy === 'newest') {
+                filtered.sort((a, b) => (b.new ? 1 : 0) - (a.new ? 1 : 0));
+            } else { // 'popular'
+                // Parse Plays (z.B. "45.2K" -> 45200)
+                const parsePlays = str => {
+                    if (str.includes('K')) return parseFloat(str) * 1000;
+                    return parseInt(str) || 0;
+                };
+                filtered.sort((a, b) => parsePlays(b.plays) - parsePlays(a.plays));
+            }
+
+            // HTML leeren
+            gamesGrid.innerHTML = '';
+
+            if (filtered.length === 0) {
+                gamesGrid.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-brand-gray/60">
+                        <i class="fas fa-search-minus text-4xl mb-3 block text-brand-cyan"></i>
+                        <p class="font-orbitron font-bold">Keine Spiele gefunden</p>
+                        <p class="text-xs mt-1">Passe deine Filter oder deinen Suchbegriff an.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Erstellen der Spiele-Karten
+            filtered.forEach(game => {
+                const isFav = favoritedGames.includes(game.id);
+                const card = document.createElement('div');
+                card.className = "bg-brand-darker border border-brand-cyan/10 hover:border-brand-cyan/40 rounded-xl overflow-hidden transition duration-300 transform hover:-translate-y-1.5 flex flex-col glow-hover group relative";
+                
+                card.innerHTML = `
+                    <!-- Game Thumbnail -->
+                    <div class="relative aspect-video overflow-hidden">
+                        <img src="${game.image}" alt="${game.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy">
+                        
+                        <!-- Badges -->
+                        <div class="absolute top-2 left-2 flex flex-col gap-1.5">
+                            ${game.new ? `<span class="bg-brand-pink text-white text-[10px] font-bold px-2 py-0.5 rounded font-orbitron shadow">NEW</span>` : ''}
+                            ${game.isFeatured ? `<span class="bg-brand-cyan text-brand-dark text-[10px] font-bold px-2 py-0.5 rounded font-orbitron shadow">FEATURED</span>` : ''}
+                        </div>
+
+                        <!-- Favorit Button -->
+                        <button onclick="event.stopPropagation(); toggleFavorite('${game.id}')" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-brand-darker/80 text-white flex items-center justify-center hover:text-brand-pink transition">
+                            <i class="${isFav ? 'fas fa-heart text-brand-pink' : 'far fa-heart'}"></i>
+                        </button>
+
+                        <!-- Play Hover Overlay -->
+                        <div class="absolute inset-0 bg-brand-dark/60 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
+                            <button onclick="launchGame('${game.id}')" class="bg-brand-cyan text-brand-dark text-sm font-bold px-5 py-2.5 rounded-full flex items-center space-x-2 transform translate-y-4 group-hover:translate-y-0 transition duration-300">
+                                <i class="fas fa-play"></i>
+                                <span>Spielen</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Game Info -->
+                    <div class="p-4 flex-1 flex flex-col">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[10px] uppercase text-brand-cyan font-bold tracking-wider">${game.category}</span>
+                            <span class="text-xs text-brand-gray flex items-center"><i class="fas fa-play-circle mr-1 text-brand-cyan/50"></i> ${game.plays}</span>
+                        </div>
+                        <h3 class="font-bold text-white group-hover:text-brand-cyan transition font-orbitron text-base mb-1 line-clamp-1">${game.title}</h3>
+                        <p class="text-xs text-brand-gray line-clamp-2 mb-4 flex-1">${game.desc}</p>
+                        
+                        <!-- Card Footer -->
+                        <div class="flex items-center justify-between pt-3 border-t border-brand-cyan/10">
+                            <div class="flex items-center text-yellow-500 text-xs font-bold">
+                                <i class="fas fa-star mr-1"></i> ${game.rating}
+                            </div>
+                            <button onclick="launchGame('${game.id}')" class="text-xs font-bold text-brand-cyan hover:text-white transition uppercase tracking-wider flex items-center">
+                                Starten <i class="fas fa-chevron-right ml-1 text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                gamesGrid.appendChild(card);
+            });
+        }
+
+        // --- GAME LAUNCH MANAGER ---
+        function launchGame(gameId) {
+            const game = gamesData.find(g => g.id === gameId);
+            if (!game) return;
+
+            // Header-Daten ins Modal füttern
+            modalGameTitle.textContent = game.title;
+            modalGameCategory.textContent = game.category;
+            
+            // Icon anpassen
+            if (game.category === '3d') {
+                modalGameIcon.className = "fas fa-cube text-brand-cyan text-xl";
+            } else if (game.category === 'action') {
+                modalGameIcon.className = "fas fa-bolt text-brand-cyan text-xl";
+            } else if (game.category === 'puzzle') {
+                modalGameIcon.className = "fas fa-brain text-brand-cyan text-xl";
+            } else {
+                modalGameIcon.className = "fas fa-trophy text-brand-cyan text-xl";
+            }
+
+            // Loader-Animation anzeigen
+            loaderSpinner.classList.remove('hidden');
+            gameModal.classList.remove('hidden');
+            setTimeout(() => gameModal.classList.add('opacity-100'), 10);
+
+            // Unterscheiden zwischen 3D Simulator und Standard iFrame
+            if (game.iframeUrl === 'internal-flight-sim') {
+                gameIframe.classList.add('hidden');
+                flightSimContainer.classList.remove('hidden');
+                initFlightSim();
+                setTimeout(() => {
+                    loaderSpinner.classList.add('hidden');
+                }, 1000);
+            } else {
+                flightSimContainer.classList.add('hidden');
+                gameIframe.classList.remove('hidden');
+                gameIframe.src = game.iframeUrl;
+                
+                gameIframe.onload = () => {
+                    loaderSpinner.classList.add('hidden');
+                };
+            }
+        }
+
+        function launchFeaturedFlightSim() {
+            launchGame('flight-sim');
+        }
+
+        function closeGameModal() {
+            gameModal.classList.remove('opacity-100');
+            setTimeout(() => {
+                gameModal.classList.add('hidden');
+                gameIframe.src = '';
+                // Flugsimulator-Animation stoppen
+                stopFlightSim();
+            }, 300);
+        }
+
+        function toggleFavorite(id) {
+            if (favoritedGames.includes(id)) {
+                favoritedGames = favoritedGames.filter(fId => fId !== id);
+            } else {
+                favoritedGames.push(id);
+            }
+            localStorage.setItem('arcadeFavorites', JSON.stringify(favoritedGames));
+            renderGames();
+        }
+
+        // Navigation & Filtersteuerung
+        function handleCategoryChange(btn) {
+            // Alle Active-Klassen entfernen
+            categoryList.querySelectorAll('button').forEach(b => {
+                b.className = "w-full text-left py-2.5 px-4 rounded-lg text-brand-gray hover:bg-brand-dark hover:text-white transition flex items-center space-x-3";
+            });
+
+            // Aktive Klasse zuweisen
+            btn.className = "w-full text-left py-2.5 px-4 rounded-lg bg-gradient-to-r from-brand-cyan/20 to-transparent border-l-4 border-brand-cyan text-brand-cyan font-bold transition flex items-center space-x-3";
+            
+            selectedCategory = btn.getAttribute('data-category');
+            currentCategoryTitle.textContent = btn.innerText;
+            renderGames();
+            
+            // Am Handy die Sidebar nach Klick schließen
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        }
+
+        function scrollToGames() {
+            document.getElementById('games-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- EVENT LISTENERS ---
+        function setupEventListeners() {
+            // Search Event
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                renderGames();
+            });
+            mobileSearchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                renderGames();
+            });
+
+            // Category Button Click
+            categoryList.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => handleCategoryChange(btn));
+            });
+
+            // Sortierung
+            sortSelect.addEventListener('change', (e) => {
+                sortBy = e.target.value;
+                renderGames();
+            });
+
+            // Modal schliessen
+            closeModalBtn.addEventListener('click', closeGameModal);
+            
+            // Fullscreen im Modal umschalten
+            fullscreenBtn.addEventListener('click', () => {
+                const element = document.getElementById('game-content-container');
+                if (element.requestFullscreen) {
+                    element.requestFullscreen();
+                } else if (element.webkitRequestFullscreen) {
+                    element.webkitRequestFullscreen();
+                }
+            });
+
+            // Mobile Navigation Toggle
+            mobileMenuBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+            });
+
+            // Schließen bei Klick außerhalb der Sidebar am Handy
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth < 768 && !sidebar.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                    sidebar.classList.add('-translate-x-full');
+                }
+            });
+        }
+
+
+        // ==========================================
+        // === 3D FLUGSIMULATOR (Three.js Engine) ===
+        // ==========================================
+        let simScene, simCamera, simRenderer, jet, jetPhysic = { speed: 100, altitude: 150 };
+        let obstacles = [];
+        let rings = [];
+        let simAnimationId;
+        let keysPressed = {};
+        let sea;
+
+        function initFlightSim() {
+            const container = document.getElementById('simulator-canvas-holder');
+            container.innerHTML = ''; // Vorheriges Canvas löschen
+            
+            // Szene aufbauen
+            simScene = new THREE.Scene();
+            simScene.fog = new THREE.FogExp2(0x0b0c10, 0.002);
+            
+            // Kamera
+            simCamera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 2000);
+            
+            // Renderer
+            simRenderer = new THREE.WebGLRenderer({ antialias: true });
+            simRenderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(simRenderer.domElement);
+
+            // Lichtquellen
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            simScene.add(ambientLight);
+            
+            const dirLight = new THREE.DirectionalLight(0x45f3ff, 1);
+            dirLight.position.set(100, 300, 100);
+            simScene.add(dirLight);
+
+            // MEER (Ozean)
+            const seaGeometry = new THREE.PlaneGeometry(10000, 10000, 64, 64);
+            const seaMaterial = new THREE.MeshPhongMaterial({
+                color: 0x071330,
+                shininess: 90,
+                specular: 0x45f3ff,
+                flatShading: true
+            });
+            sea = new THREE.Mesh(seaGeometry, seaMaterial);
+            sea.rotation.x = -Math.PI / 2;
+            sea.position.y = 0;
+            simScene.add(sea);
+
+            // JET (Das Spieler-Flugzeug aus geometrischen Formen konstruieren)
+            const jetGroup = new THREE.Group();
+            
+            // Jet Rumpf
+            const bodyGeo = new THREE.ConeGeometry(2, 12, 8);
+            const bodyMat = new THREE.MeshPhongMaterial({ color: 0x1f2833 });
+            const jetBody = new THREE.Mesh(bodyGeo, bodyMat);
+            jetBody.rotation.x = Math.PI / 2;
+            jetGroup.add(jetBody);
+
+            // Hauptflügel
+            const wingGeo = new THREE.BoxGeometry(16, 0.3, 3);
+            const wingMat = new THREE.MeshPhongMaterial({ color: 0x45f3ff });
+            const wing = new THREE.Mesh(wingGeo, wingMat);
+            wing.position.set(0, 0, -1);
+            jetGroup.add(wing);
+
+            // Heckflügel
+            const tailGeo = new THREE.BoxGeometry(1, 3, 2);
+            const tail = new THREE.Mesh(tailGeo, wingMat);
+            tail.position.set(0, 1.5, -4.5);
+            jetGroup.add(tail);
+
+            // Cockpit-Fenster (Neon Cyan)
+            const glassGeo = new THREE.SphereGeometry(1, 8, 8);
+            const glassMat = new THREE.MeshPhongMaterial({ color: 0x66fcf1, emissive: 0x66fcf1 });
+            const cockpit = new THREE.Mesh(glassGeo, glassMat);
+            cockpit.position.set(0, 0.8, 2);
+            cockpit.scale.set(1, 1, 2.5);
+            jetGroup.add(cockpit);
+
+            jet = jetGroup;
+            jet.position.set(0, 150, 0);
+            simScene.add(jet);
+
+            // Kamera relativ zum Jet positionieren (3rd Person View)
+            simCamera.position.set(jet.position.x, jet.position.y + 8, jet.position.z - 25);
+            simCamera.lookAt(jet.position);
+
+            // SPIELOBJEKTE GENERIEREN (Inseln/Säulen & schwebende Ringe)
+            generateObstaclesAndRings();
+
+            // Physik & Steuerung rücksetzen
+            jetPhysic = { speed: 120, altitude: 150 };
+            keysPressed = {};
+
+            // Steuerung Key-Down Listener
+            window.addEventListener('keydown', onSimKeyDown);
+            window.addEventListener('keyup', onSimKeyUp);
+            window.addEventListener('resize', onSimWindowResize);
+
+            // Animation starten
+            animateSim();
+        }
+
+        function generateObstaclesAndRings() {
+            // Hindernisse (Säulen/Felsformationen)
+            for (let i = 0; i < 25; i++) {
+                const height = 150 + Math.random() * 250;
+                const radius = 20 + Math.random() * 30;
+                const columnGeo = new THREE.CylinderGeometry(radius * 0.5, radius, height, 8);
+                const columnMat = new THREE.MeshPhongMaterial({ 
+                    color: 0x1f2833, 
+                    flatShading: true,
+                    wireframe: false
+                });
+                const col = new THREE.Mesh(columnGeo, columnMat);
+                
+                // Entlang der Z-Achse verstreuen (Flugrichtung)
+                col.position.set(
+                    (Math.random() - 0.5) * 800,
+                    height / 2, 
+                    -i * 200 - 150
+                );
+                simScene.add(col);
+                obstacles.push(col);
+            }
+
+            // Schwebende Neon-Ringe zum Durchfliegen
+            for (let i = 0; i < 30; i++) {
+                const ringGeo = new THREE.TorusGeometry(12, 1.5, 8, 24);
+                const ringMat = new THREE.MeshBasicMaterial({ 
+                    color: 0xff007f, 
+                    wireframe: true 
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                
+                ring.position.set(
+                    (Math.random() - 0.5) * 400,
+                    100 + Math.random() * 200,
+                    -i * 180 - 100
+                );
+                simScene.add(ring);
+                rings.push(ring);
+            }
+        }
+
+        function onSimKeyDown(e) {
+            keysPressed[e.code] = true;
+        }
+
+        function onSimKeyUp(e) {
+            keysPressed[e.code] = false;
+        }
+
+        function onSimWindowResize() {
+            const container = document.getElementById('simulator-canvas-holder');
+            if (simCamera && simRenderer && container) {
+                simCamera.aspect = container.clientWidth / container.clientHeight;
+                simCamera.updateProjectionMatrix();
+                simRenderer.setSize(container.clientWidth, container.clientHeight);
+            }
+        }
+
+        // Haupt-Render-Loop des Flugsimulators
+        function animateSim() {
+            simAnimationId = requestAnimationFrame(animateSim);
+
+            // --- STEUERUNGSLOGIK ---
+            let targetRoll = 0;
+            let targetPitch = 0;
+
+            if (keysPressed['KeyA'] || keysPressed['ArrowLeft']) {
+                jet.position.x -= 2.5;
+                targetRoll = 0.5;
+            }
+            if (keysPressed['KeyD'] || keysPressed['ArrowRight']) {
+                jet.position.x += 2.5;
+                targetRoll = -0.5;
+            }
+            if (keysPressed['KeyW'] || keysPressed['ArrowUp']) {
+                jet.position.y -= 2.0;
+                targetPitch = -0.3;
+            }
+            if (keysPressed['KeyS'] || keysPressed['ArrowDown']) {
+                jet.position.y += 2.0;
+                targetPitch = 0.3;
+            }
+
+            // Rollen-Effekt (Q & E)
+            if (keysPressed['KeyQ']) {
+                targetRoll = 0.8;
+                jet.position.x -= 3.5;
+            }
+            if (keysPressed['KeyE']) {
+                targetRoll = -0.8;
+                jet.position.x += 3.5;
+            }
+
+            // Nitro Boost (Leertaste)
+            if (keysPressed['Space']) {
+                jetPhysic.speed = THREE.MathUtils.lerp(jetPhysic.speed, 250, 0.05);
+            } else {
+                jetPhysic.speed = THREE.MathUtils.lerp(jetPhysic.speed, 120, 0.05);
+            }
+
+            // Sanftes Rotieren des Flugzeugs passend zur Steuerung
+            jet.rotation.z = THREE.MathUtils.lerp(jet.rotation.z, targetRoll, 0.1);
+            jet.rotation.x = THREE.MathUtils.lerp(jet.rotation.x, targetPitch, 0.1);
+            
+            // Ständige Vorwärtsbewegung
+            jet.position.z -= (jetPhysic.speed / 60);
+
+            // Minimale & Maximale Höhenbegrenzung
+            if (jet.position.y < 15) jet.position.y = 15;
+            if (jet.position.y > 600) jet.position.y = 600;
+
+            // Kamera-Verfolgung (Gedämpfte Federung für Kino-Look)
+            simCamera.position.x = THREE.MathUtils.lerp(simCamera.position.x, jet.position.x, 0.08);
+            simCamera.position.y = THREE.MathUtils.lerp(simCamera.position.y, jet.position.y + 6, 0.08);
+            simCamera.position.z = THREE.MathUtils.lerp(simCamera.position.z, jet.position.z + 24, 0.08);
+            simCamera.lookAt(new THREE.Vector3(jet.position.x, jet.position.y, jet.position.z - 30));
+
+            // Ringe langsam rotieren lassen und Kollisionsprüfung
+            rings.forEach(ring => {
+                ring.rotation.y += 0.02;
+                ring.rotation.x += 0.01;
+
+                // Simple Distanz-Kollisionserkennung (Durchfliegen)
+                const distance = jet.position.distanceTo(ring.position);
+                if (distance < 16) {
+                    // Ring einfärben (Erfolgs-Feedback) und wegbewegen
+                    ring.material.color.setHex(0x66fcf1);
+                    ring.position.y -= 500; // Aus dem Sichtfeld verschieben
+                }
+            });
+
+            // Wenn das Ende erreicht ist, unendlich loopen
+            if (jet.position.z < -4500) {
+                jet.position.z = 0;
+                // Ringe wieder zurücksetzen
+                rings.forEach((ring, i) => {
+                    ring.position.y = 100 + Math.random() * 200;
+                    ring.material.color.setHex(0xff007f);
+                });
+            }
+
+            // HUD Anzeige-Werte aktualisieren
+            document.getElementById('hud-speed').textContent = `${Math.round(jetPhysic.speed)} km/h`;
+            document.getElementById('hud-altitude').textContent = `${Math.round(jet.position.y)} m`;
+
+            // Wellenanimation auf dem Meer (Simuliert durch leichte Rotation)
+            if (sea) {
+                sea.position.z = jet.position.z;
+            }
+
+            simRenderer.render(simScene, simCamera);
+        }
+
+        function stopFlightSim() {
+            if (simAnimationId) {
+                cancelAnimationFrame(simAnimationId);
+            }
+            window.removeEventListener('keydown', onSimKeyDown);
+            window.removeEventListener('keyup', onSimKeyUp);
+            window.removeEventListener('resize', onSimWindowResize);
+            
+            // Säuberung der WebGL Objekte zur Performance-Sicherung
+            obstacles = [];
+            rings = [];
+        }
+    </script>
+</body>
+</html>
+
+```
